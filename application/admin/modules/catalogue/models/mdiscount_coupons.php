@@ -630,8 +630,7 @@ class Mdiscount_coupons extends AG_Model
             $langs[] = $key;
         }*/
 
-
-
+//maryana lalallalal
 
         if($id) {
             $selected_products = $this->db->select('`'.self::ID_PROD.'`')

@@ -630,6 +630,9 @@ class Mdiscount_coupons extends AG_Model
             $langs[] = $key;
         }*/
 
+
+
+
         if($id) {
             $selected_products = $this->db->select('`'.self::ID_PROD.'`')
                 ->from('`' . self::D_COUP . '_products`')

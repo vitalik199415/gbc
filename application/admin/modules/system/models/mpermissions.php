@@ -11,6 +11,10 @@ class Mpermissions extends AG_Model {
             'discount_coupons' => 1
         )
     );
+    
+    public $menu = array(
+        0 => array()
+    );
 
 
 }

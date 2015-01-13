@@ -13,7 +13,15 @@ class Mpermissions extends AG_Model {
     );
     
     public $menu = array(
-        0 => array()
+        0 => array(
+            1 => array('Меню|Модули', -1, '#'),
+            2 => array('Каталог продукции', -1, '#'),
+            3 => array('Продажи', -1, '#'),
+            4 => array('Покупатели', -1, '#'),
+            5 => array('Настройка сайта', -1, '#'),
+            6 => array('Склад', -1, '#'),
+            7 => array('Выход', -1, 'login/logout')
+        )
     );
 
 

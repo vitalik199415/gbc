@@ -12,12 +12,6 @@ class Mpermissions extends AG_Model {
         )
     );
 
-    public function show(){
-
-        if(isset($this->permissions[0]['discounts'])) echo "Vivat!";
-
-    }
-
 
 }
 

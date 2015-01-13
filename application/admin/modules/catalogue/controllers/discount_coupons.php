@@ -17,9 +17,8 @@ class Discount_coupons extends AG_Controller
         $this->template->add_title('Каталог продукции - ')->add_title('Купоны на скидку - ');
         $this->template->add_navigation('Каталог продукции')->add_navigation('Купоны на скидку', set_url('*/*/'));
 
-        $this->load->model('mpermissions');
-        $rang = $this->session->get_data('rang');
-        if(!isset($this->mpermissions->permissions[$rang]['discount_coupons'])) exit else $this->index();
+        //Блокировка доступа пользователя к модулю системы
+        if(!isset($this->mpermissions->permissions[$this->session->get_data('rang')]['discount_coupons'])) { echo "You do not have permission!"; die; } else { $this->index(); }
     }
 
     public function index()

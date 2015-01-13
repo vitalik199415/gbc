@@ -15,8 +15,11 @@ class Discount_coupons extends AG_Controller
     {
         parent::__construct();
         $this->template->add_title('Каталог продукции - ')->add_title('Купоны на скидку - ');
-        $this->template->add_navigation('Каталог продукции')->add_navigation('Купоны на скидку',
-            set_url('*/*/'));
+        $this->template->add_navigation('Каталог продукции')->add_navigation('Купоны на скидку', set_url('*/*/'));
+
+        $this->load->model('mpermissions');
+        $rang = $this->session->get_data('rang');
+        if(!isset($this->mpermissions->permissions[$rang]['discount_coupons'])) exit else $this->index();
     }
 
     public function index()

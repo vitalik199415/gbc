@@ -216,6 +216,7 @@ class CI_Controller{}
  * @property Mproducts_similar $mproducts_similar
  * @property Mproducts_types $mproducts_types
  * @property Mproducts_view $mproducts_view
+ * @property Mpermissions $mpermissions
  *
  */
 class CI_Model{}

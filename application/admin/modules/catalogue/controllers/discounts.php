@@ -11,6 +11,7 @@ class Discounts extends AG_Controller {
 
     public function index()
     {
+        
         $this->load->model("mdiscounts");
 
         if($select = $this->input->post('discounts_grid_select'))
@@ -39,6 +40,7 @@ class Discounts extends AG_Controller {
                 }
             }
         }
+        echo $this->mpermissions->get_menu();
         $this->mdiscounts->render_discounts_grid();
     }
 

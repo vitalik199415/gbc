@@ -52,8 +52,9 @@ class AG_Controller extends MX_Controller
 			start_js_func();
 		});
 		');
-		
-		$this->template->add_base_header('menu',  array(),'menu');
+
+		$arr['menu'] = $this->mpermissions->get_menu();
+		$this->template->add_base_header('menu',  $arr,'menu');
 		$this->template->add_base_header('header',array(),'head');
 		
 		

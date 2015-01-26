@@ -110,7 +110,7 @@ $autoload['language'] = array();
 |
 */
 
-$autoload['model'] = array('langs/mlangs', 'users/musers', 'system/mpermissions');
+$autoload['model'] = array('langs/mlangs', 'users/musers', 'sys/mpermissions');
 
 
 /* End of file autoload.php */

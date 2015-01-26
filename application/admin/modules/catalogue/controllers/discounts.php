@@ -40,7 +40,6 @@ class Discounts extends AG_Controller {
                 }
             }
         }
-        echo $this->mpermissions->get_menu();
         $this->mdiscounts->render_discounts_grid();
     }
 

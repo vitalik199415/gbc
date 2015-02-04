@@ -20,7 +20,8 @@ class Mlogin extends AG_Model
 	public function autorize($data)
 		{
 			$query = $this->db->select("MA.*, U.`rang`")->from(self::M_ADMIN." as MA")
-                          ->join(self::USERS.' as U', 'U.`id_users`=MA.`id_users`', 'INNER')->where_in($data);
+                          ->join(self::USERS.' as U', 'U.`id_users`=MA.`id_users`', 'INNER')
+						  ->where('MA.`login`',$data['login'])->where('MA.`password`',$data['password']);
 			$result = $this->db->get()->result_array();
 			if(count($result)==1)
 				{

@@ -51,8 +51,7 @@ class Mdiscount_coupons extends AG_Model
 
         $this->load->model('mlangs');
         $langs_temp = $this->mlangs->get_active_languages();
-        var_dump($langs_temp);
-        exit;
+
         $data['langs'] = array();
         $lang_id = $this->db->select('DISTINCT `id_langs` AS lang_id')
             ->from('`m_u_customers`')

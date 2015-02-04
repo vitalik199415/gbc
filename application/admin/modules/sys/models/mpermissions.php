@@ -99,7 +99,7 @@ class Mpermissions extends AG_Model {
         ),
         56 => array(
             57  => array('Модули системы', 'sys/permissions_modules', 4),
-            58  => array('Администраторы системы', 'sys/users', 4)
+            58  => array('Администраторы системы', 'sys/admins', 4)
         )
     );
 

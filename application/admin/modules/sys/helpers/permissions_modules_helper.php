@@ -136,10 +136,10 @@ function helper_permissions_modules_form_build($data = array(), $save_param = ''
 
     $CI->form->group('main_block')->add_object_to($main,
         'text',
-        'main[sort]',
-        'Порядок сортировки:'
+        'main[rang]',
+        'Ранг доступа к модулю:'
     );
-    
+
     //Блок описания
     $PMdata = FALSE;
     if(isset($data['desc'])) $PMdata['desc'] = $data['desc'];

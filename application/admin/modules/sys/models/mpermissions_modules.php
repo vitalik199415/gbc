@@ -130,6 +130,8 @@ class Mpermissions_modules extends AG_Model {
 
                 $this->db->trans_start();
                 $last_id = $this->sql_add_data($main)->sql_save(self::P_MODULES);
+                $sort['sort'] = $last_id;
+                $this->db->where('`'.self::ID_P_MODULES.'`', $last_id)->update('`'.self::P_MODULES.'`', $sort);
 
                 $this->db
                      ->select("`id_langs`, `name`")

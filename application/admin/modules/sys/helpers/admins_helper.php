@@ -182,6 +182,15 @@ function helper_admins_form_build($data = array(), $save_param = '') {
         )
     );
 
+    $CI->form->group('main_block')->add_object_to($main,
+        'select',
+        'main[superadmin]',
+        'Суперадминистратор:',
+        array(
+            'options' => array('0' => 'Нет', '1' => 'Да')
+        )
+    );
+
     $PMdata = FALSE;
     if(isset($data['system_modules'])) $PMdata['system_modules'] = $data['system_modules'];
 
@@ -197,11 +206,38 @@ function helper_admins_form_build($data = array(), $save_param = '') {
         foreach ($data['a_modules'] as $key => $vall) {
             $CI->form->group('a_modules')->add_object_to($system_modules,
                 'checkbox',
-                'system_modules['.$key.']',
-                $vall,
+                'system_modules['.$key.'][id]',
+                $vall['name'],
                 array(
-                    'value' => $key
+                    'value' => $key,
+                    'option' => array('class' => 'attributes')
                 )
+            );
+
+            $CI->form->group('a_modules')->add_object_to($system_modules,
+                'html',
+                '<div style="padding:5px 30px; margin: 0 0 10px 50px;color: #fff">'
+            );
+
+            $CI->form->group('a_modules')->add_object_to($main,
+                'select',
+                'system_modules['.$key.'][type]',
+                '',
+                array(
+                    'options' => array('0' => 'Просмотр записей в таблицах',
+                                       '1' => 'Добавление, редактирование, удаление собственных записей в таблицах',
+                                       '2' => 'Добавление, редактирование, удаление всех записей в таблицах')
+                )
+            );
+
+            $CI->form->group('a_modules')->add_object_to($system_modules,
+                'html',
+                '<p>'.$vall['desc'].'</p>'
+            );
+
+            $CI->form->group('a_modules')->add_object_to($system_modules,
+                'html',
+                '</div>'
             );
         }
     }
@@ -221,11 +257,37 @@ function helper_admins_form_build($data = array(), $save_param = '') {
         foreach ($data['u_modules'] as $key => $vall) {
             $CI->form->group('u_modules')->add_object_to($user_modules,
                 'checkbox',
-                'user_modules['.$key.']',
-                $vall,
+                'user_modules['.$key.'][id]',
+                $vall['name'],
                 array(
-                    'value' => $key
+                    'value' => $key,
+                    'option' => array('class' => 'attributes')
                 )
+            );
+
+            $CI->form->group('u_modules')->add_object_to($user_modules,
+                'html',
+                '<div style="padding:5px 30px; margin: 0 0 10px 50px; color: #fff">'
+            );
+
+            $CI->form->group('u_modules')->add_object_to($main,
+                'select',
+                'user_modules['.$key.'][type]',
+                '',
+                array(
+                    'options' => array('0' => 'Просмотр записей в таблицах',
+                        '1' => 'Добавление, редактирование, удаление собственных записей в таблицах',
+                        '2' => 'Добавление, редактирование, удаление всех записей в таблицах')
+                )
+            );
+            $CI->form->group('u_modules')->add_object_to($user_modules,
+                'html',
+                '<p>'.$vall['desc'].'</p>'
+            );
+
+            $CI->form->group('u_modules')->add_object_to($user_modules,
+                'html',
+                '</div>'
             );
         }
     }

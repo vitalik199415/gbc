@@ -22,33 +22,9 @@ class Madmins extends AG_Model {
 
     public function add() {
         if($this->session->get_data('super') == 1) {
-
             $data = array();
 
-            $rang = $this->session->get_data('rang');
-
-            $a_modules = $this->db->select('PM.`id_m_permissions_modules` as ID,PM.`module`, PM.`rang`, PMD.`name`')
-                ->from('m_permissions_modules as PM')
-                ->join('m_permissions_modules_description as PMD', 'PM.`id_m_permissions_modules`=PMD.`id_m_permissions_modules`', 'INNER')
-                ->where('PMD.`id_langs`', 1)->get()->result_array();
-
-            foreach ($a_modules as $key => $vall) {
-                if ($vall['rang'] <= $rang) {
-                    $data['a_modules'][$vall['ID']] = $vall['module'].'     ['.$vall['name'].']';
-                }
-            }
-
-            $u_modules = $this->db->select('UM.`id_users_modules` as ID, UM.`alias`, M.`rang`, MD.`name`')
-                ->from('users_modules as UM')
-                ->join('modules as M', 'UM.`id_modules`=M.`id_modules`', 'INNER')
-                ->join('modules_description as MD', 'UM.`id_modules`=MD.`id_modules`', 'INNER')
-                ->where('UM.`id_users`', $this->id_users)->where('MD.`id_langs`', 1)->get()->result_array();
-
-            foreach ($u_modules as $key => $vall) {
-                if ($vall['rang'] <= $rang) {
-                    $data['u_modules'][$vall['ID']] = $vall['alias'].'     ['.$vall['name'].']';
-                }
-            }
+            $data = array_merge($data, $this->get_module());
 
             $this->load->helper('admins');
             helper_admins_form_build($data);
@@ -60,56 +36,36 @@ class Madmins extends AG_Model {
 
     public function edit($id){
         if($this->session->get_data('super') == 1) {
-            $main = $this->db->select(self::ID_M_ADMIN." as ID, name, login, password, email, note, active")
+            $main = $this->db->select(self::ID_M_ADMIN." as ID, superadmin, name, login, password, email, note, active")
                 ->from(self::M_ADMIN)->where(self::ID_M_ADMIN, $id)->where('id_users', $this->id_users)->limit(1)
                 ->get()->row_array();
 
             if(count($main)>0)
             {
-                $rang = $this->session->get_data('rang');
                 $data = array();
-
                 $data['main'] = $main;
 
-                $a_modules = $this->db->select('PM.`id_m_permissions_modules` as ID,PM.`module`, PM.`rang`, PMD.`name`')
-                    ->from('m_permissions_modules as PM')
-                    ->join('m_permissions_modules_description as PMD', 'PM.`id_m_permissions_modules`=PMD.`id_m_permissions_modules`', 'INNER')
-                    ->where('PMD.`id_langs`', 1)->get()->result_array();
+                $data = array_merge($data, $this->get_module());
 
-                foreach ($a_modules as $key => $vall) {
-                    if ($vall['rang'] <= $rang) {
-                        $data['a_modules'][$vall['ID']] = $vall['module'].'     ['.$vall['name'].']';
+                if($main['superadmin'] != 1) {
+                    $system_modules = $this->db->select("id_m_permissions_modules as ID, type")
+                        ->from("m_administrator_permissions_modules")->where(self::ID_M_ADMIN, $id)
+                        ->get()->result_array();
+
+                    foreach ($system_modules as $sys_module) {
+                        $data['system_modules'][$sys_module['ID']]['id'] = $sys_module['ID'];
+                        $data['system_modules'][$sys_module['ID']]['type'] = $sys_module['type'];
+                    }
+
+                    $user_modules = $this->db->select("id_users_modules as ID, type")
+                        ->from("m_administrator_permissions_users_modules")->where(self::ID_M_ADMIN, $id)
+                        ->get()->result_array();
+
+                    foreach ($user_modules as $user_module) {
+                        $data['user_modules'][$user_module['ID']]['id'] = $user_module['ID'];
+                        $data['user_modules'][$user_module['ID']]['type'] = $user_module['type'];
                     }
                 }
-
-                $u_modules = $this->db->select('UM.`id_users_modules` as ID, UM.`alias`, M.`rang`, MD.`name`')
-                    ->from('users_modules as UM')
-                    ->join('modules as M', 'UM.`id_modules`=M.`id_modules`', 'INNER')
-                    ->join('modules_description as MD', 'UM.`id_modules`=MD.`id_modules`', 'INNER')
-                    ->where('UM.`id_users`', $this->id_users)->where('MD.`id_langs`', 1)->get()->result_array();
-
-                foreach ($u_modules as $key => $vall) {
-                    if ($vall['rang'] <= $rang) {
-                        $data['u_modules'][$vall['ID']] = $vall['alias'].'     ['.$vall['name'].']';
-                    }
-                }
-
-                $system_modules = $this->db->select("id_m_permissions_modules as ID")
-                    ->from("m_administrator_permissions_modules")->where(self::ID_M_ADMIN, $id)
-                    ->get()->result_array();
-
-                foreach ($system_modules as $sys_module) {
-                    $data['system_modules'][$sys_module['ID']] = $sys_module['ID'];
-                }
-
-                $user_modules = $this->db->select("id_users_modules as ID")
-                    ->from("m_administrator_permissions_users_modules")->where(self::ID_M_ADMIN, $id)
-                    ->get()->result_array();
-
-                foreach ($user_modules as $user_module) {
-                    $data['user_modules'][$user_module['ID']] = $user_module['ID'];
-                }
-
                 $this->load->helper('admins');
                 helper_admins_form_build($data, '/id/'.$id);
                 return TRUE;
@@ -136,8 +92,10 @@ class Madmins extends AG_Model {
 
                 $this->db->where('`'.self::ID_M_ADMIN.'`', $id)->update('`'.self::M_ADMIN.'`', $main);
 
-                $this->save_permissions_modules($system_modules, $id);
-                $this->save_user_modules($user_modules, $id);
+                if($main['superadmin'] != 1) {
+                    $this->save_system_modules($system_modules, $id);
+                    $this->save_user_modules($user_modules, $id);
+                }
 
                 $this->db->trans_complete();
                 if (!$this->db->trans_status()) return FALSE;
@@ -156,20 +114,28 @@ class Madmins extends AG_Model {
                 $this->db->trans_start();
                 $last_id = $this->sql_add_data($main)->sql_save(self::M_ADMIN);
 
-                foreach($system_modules as $a_module) {
-                    $module = array(
-                        self::ID_M_ADMIN => $last_id,
-                        'id_m_permissions_modules' => $a_module
-                    );
-                    $this->db->insert('m_administrator_permissions_modules', $module);
-                }
+                if($main['superadmin'] != 1) {
+                    foreach ($system_modules as $key => $vall) {
+                        if(isset($vall['id'])) {
+                            $module = array(
+                                self::ID_M_ADMIN => $last_id,
+                                'id_m_permissions_modules' => $vall['id'],
+                                'type' => $vall['type']
+                            );
+                            $this->db->insert('m_administrator_permissions_modules', $module);
+                        }
+                    }
 
-                foreach($user_modules as $u_module) {
-                    $module = array(
-                        self::ID_M_ADMIN => $last_id,
-                        'id_users_modules' => $u_module
-                    );
-                    $this->db->insert('m_administrator_permissions_users_modules', $module);
+                    foreach ($user_modules as $key => $vall) {
+                        if(isset($vall['id'])) {
+                            $module = array(
+                                self::ID_M_ADMIN => $last_id,
+                                'id_users_modules' => $vall['id'],
+                                'type' => $vall['type']
+                            );
+                            $this->db->insert('m_administrator_permissions_users_modules', $module);
+                        }
+                    }
                 }
 
                 $this->db->trans_complete();
@@ -180,7 +146,7 @@ class Madmins extends AG_Model {
         }
     }
 
-    public function save_permissions_modules($POST, $ID)
+    public function save_system_modules($POST, $ID)
     {
         $result = $this->db->where('`'.self::ID_M_ADMIN.'`', $ID)->get('`m_administrator_permissions_modules`')->result_array();
 
@@ -189,25 +155,27 @@ class Madmins extends AG_Model {
             $data[$module_id['id_m_permissions_modules']] = $module_id['id_m_permissions_modules'];
         }
 
-        foreach($POST as $m_id)
+        foreach($POST as $key => $vall)
         {
-            if(isset($data[$m_id]))
-            {
-                unset($data[$m_id]);
-            }
-            else
-            {
-                $group = array('id_m_permissions_modules' => $m_id, self::ID_M_ADMIN => $ID);
-                $this->db->insert('`m_administrator_permissions_modules`', $group);
+            if(isset($vall['id'])) {
+                if (isset($data[$vall['id']])) {
+                    $group = array('id_m_permissions_modules' => $vall['id'], self::ID_M_ADMIN => $ID, 'type' => $vall['type']);
+                    $this->db->where('`'.self::ID_M_ADMIN.'`', $ID)->where('`id_m_permissions_modules`', $vall['id'])
+                             ->update('`m_administrator_permissions_modules`', $group);
+                    unset($data[$vall['id']]);
+                } else {
+                    $group = array('id_m_permissions_modules' => $vall['id'], self::ID_M_ADMIN => $ID, 'type' => $vall['type']);
+                    $this->db->insert('`m_administrator_permissions_modules`', $group);
+                }
             }
         }
 
         $del_data = FALSE;
         if(isset($data))
         {
-            foreach($data as $id)
+            foreach($data as $key => $id)
             {
-                $del_data[] = $id;
+                $del_data[] = $id['id'];
             }
         }
         if($del_data)
@@ -221,30 +189,30 @@ class Madmins extends AG_Model {
     {
         $result = $this->db->where('`'.self::ID_M_ADMIN.'`', $ID)->get('`m_administrator_permissions_users_modules`')->result_array();
 
-        foreach($result as $module_id)
-        {
+        foreach($result as $module_id) {
             $data[$module_id['id_users_modules']] = $module_id['id_users_modules'];
         }
 
-        foreach($POST as $m_id)
-        {
-            if(isset($data[$m_id]))
-            {
-                unset($data[$m_id]);
-            }
-            else
-            {
-                $module = array('id_users_modules' => $m_id, self::ID_M_ADMIN => $ID);
-                $this->db->insert('`m_administrator_permissions_users_modules`', $module);
+        foreach($POST as $key => $vall) {
+            if(isset($vall['id'])) {
+                if (isset($data[$vall['id']])) {
+                    $module = array('id_users_modules' => $vall['id'], self::ID_M_ADMIN => $ID, 'type' => $vall['type']);
+                    $this->db->where('`'.self::ID_M_ADMIN.'`', $ID)->where('`id_users_modules`', $vall['id'])
+                        ->update('`m_administrator_permissions_users_modules`', $module);
+                    unset($data[$vall['id']]);
+                } else {
+                    $module = array('id_users_modules' => $vall['id'], self::ID_M_ADMIN => $ID, 'type' => $vall['type']);
+                    $this->db->insert('`m_administrator_permissions_users_modules`', $module);
+                }
             }
         }
 
         $del_data = FALSE;
         if(isset($data))
         {
-            foreach($data as $id)
+            foreach($data as $key => $vall)
             {
-                $del_data[] = $id;
+                $del_data[] = $vall['id'];
             }
         }
         if($del_data)
@@ -276,6 +244,37 @@ class Madmins extends AG_Model {
             return FALSE;
         }
         return FALSE;
+    }
+
+    public function get_module() {
+        $rang = $this->session->get_data('rang');
+        $data = array();
+
+        $a_modules = $this->db->select('PM.`id_m_permissions_modules` as ID,PM.`module`, PM.`rang`, PMD.`name`, PMD.`description`')
+            ->from('m_permissions_modules as PM')
+            ->join('m_permissions_modules_description as PMD', 'PM.`id_m_permissions_modules`=PMD.`id_m_permissions_modules`', 'INNER')
+            ->where('PMD.`id_langs`', 1)->get()->result_array();
+
+        foreach ($a_modules as $key => $vall) {
+            if ($vall['rang'] <= $rang) {
+                $data['a_modules'][$vall['ID']]['name'] = $vall['module'].'     ['.$vall['name'].']';
+                $data['a_modules'][$vall['ID']]['desc'] = $vall['description'];
+            }
+        }
+
+        $u_modules = $this->db->select('UM.`id_users_modules` as ID, UM.`alias`, M.`rang`, MD.`name`, MD.`description`')
+            ->from('users_modules as UM')
+            ->join('modules as M', 'UM.`id_modules`=M.`id_modules`', 'INNER')
+            ->join('modules_description as MD', 'UM.`id_modules`=MD.`id_modules`', 'INNER')
+            ->where('UM.`id_users`', $this->id_users)->where('MD.`id_langs`', 1)->get()->result_array();
+
+        foreach ($u_modules as $key => $vall) {
+            if ($vall['rang'] <= $rang) {
+                $data['u_modules'][$vall['ID']]['name'] = $vall['alias'].'     ['.$vall['name'].']';
+                $data['u_modules'][$vall['ID']]['desc'] = $vall['description'];
+            }
+        }
+        return $data;
     }
 
     public function save_validate()

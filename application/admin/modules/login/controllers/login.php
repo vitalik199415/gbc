@@ -46,16 +46,24 @@ private $error = array();
 					$data['password'] = trim($_POST['password']);
 								
 					$this->load->model('mlogin');
-					if($this->mlogin->autorize($data))
+					if($this->mlogin->autorize($data) == 2)
 						{
 							redirect('');
 						}
 					else
+						if($this->mlogin->autorize($data) == 1)
 						{
-							$this->error[] = 'Не верно введен "Логин" или "Пароль".';
+							$this->error[] = 'Ваша учетная запись не активирована, обратитесь к админисстратору.';
 							$this->session->set_flashdata('ErrorArray', $this->error);
 							redirect('login');
 						}
+						else
+							if($this->mlogin->autorize($data) == 0)
+							{
+								$this->error[] = 'Не верно введен "Логин" или "Пароль".';
+								$this->session->set_flashdata('ErrorArray', $this->error);
+								redirect('login');
+							}
 				}
 			else
 				{
